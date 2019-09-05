@@ -167,3 +167,9 @@ nav ul,nav li{
 	display: block;
 	overflow: hidden;
 }
+
+.block-user-table{
+	height: 90vh;
+	display: block;
+	overflow: scroll;
+}

@@ -17,18 +17,27 @@ const URL = "mongodb://localhost:27017/FoodOrder";    //For LocalHost
 const mongoose = require('mongoose');
 mongoose.connect(URL);
 
+/*----------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-const redirectLogin= (request, response, next) => {
+
+const redirectAdminLogin= (request, response, next) => {
     if(!request.session.user)
     {
-        response.render('index');
+        additem.find((err, result)=>{
+            if(err) throw err;
+            else
+            {    
+                response.render('index', {data : result});
+            }
+        });
     }
     else{
         next();
     }
 };
 
-// caching disabled for every route//////////////////////////////
+
+//caching disabled for every route
 app.use(function(request, response, next) {
     response.set('Cache-Control', 'no-cache, private, no-store,must-revalidate,max-stale=0, post-check=0, pre-check=0');
     next();
@@ -49,19 +58,24 @@ app.use(session({
 //To serve Static Content
 app.use(express.static('public'));
 
+/* 
 //Configure view engine : hbs
-// var path = require('path');
-// app.set('views' , path.join(__dirname , 'views')); // Give Location
-// //console.log(path.join(__dirname , 'views')); //To see path of file view
-// app.set('view engine', 'hbs'); // Give Extension
+var path = require('path');
+app.set('views' , path.join(__dirname , 'views')); // Give Location
+//console.log(path.join(__dirname , 'views')); //To see path of file view
+app.set('view engine', 'hbs'); // Give Extension 
+*/
 
 var hbs= require('express-handlebars');
 app.engine('hbs' , hbs({
     extname: 'hbs',
-    defaultLayout: 'AdminNav',
+    defaultLayout: 'CustomerNav',
     layoutsDir: __dirname + '/views/layouts/'
 }));
 app.set('view engine' , 'hbs');
+
+//globle variable
+var count = 0;
 
 
 //Configure body-parser
@@ -70,6 +84,68 @@ app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({
     extended:true
 }));
+
+
+
+
+/*-------------------------------------------------------------------Admin GET Methods for Backend--------------------------------------------------------------------------------*/
+
+
+app.get('/admin-login' , (request , response) => {
+    response.render('Admin_login'); //Here Two doubts - (1)Extension, (2)location
+});
+
+
+app.get('/adminHome',redirectAdminLogin, (request, response) => {
+    response.render('AdminHome',{user:request.session.user , layout: 'AdminNav.hbs'});
+});
+
+
+app.get('/AddProduct' ,redirectAdminLogin, (request, response) => {
+    response.render('addproduct',{user:request.session.user, layout: 'AdminNav.hbs'});
+});
+
+
+app.get('/viewProduct',redirectAdminLogin, (request, response) => {
+    additem.find((err, result)=>{
+        if(err) throw err;
+        else    
+            response.render('viewproduct',{data : result, user:request.session.user, layout: 'AdminNav.hbs'});
+    });
+});
+
+
+app.get('/DeleteProduct', redirectAdminLogin, (request,response) => {
+    //var id=request.query.id;
+    additem.deleteOne({_id:request.query.id}, (err) => {
+        if(err) throw err;
+        else{
+            additem.find((err, result)=>{
+                if(err) throw err;
+                else    
+                    response.render('viewproduct',{data : result , user:request.session.user, layout: 'AdminNav.hbs'});
+            })
+        }
+    });
+});
+
+
+app.get('/UpdateProduct',redirectAdminLogin,(request,response) => {
+    additem.findOne({_id:request.query.id}, (err, result) => {
+        if(err) throw err;
+        else
+            response.render('getUpdateInfo',{data : result , user:request.session.user, layout: 'AdminNav.hbs'});
+    });
+});
+
+
+app.get('/viewUsers' , redirectAdminLogin,(request,response) => {
+    User.find((err,result)=>{
+        if(err) throw err;
+        else    
+            response.render('ViewUsersDetail',{data : result, user:request.session.user, layout: 'AdminNav.hbs'});
+    })
+})
 
 
 app.get('/checkExistance', (request,response) =>{
@@ -101,79 +177,47 @@ app.get('/searchRecord', (request,response) =>{
 });
 
 
+/*-------------------------------------------------------------------Customer or User GET Methods for Backend--------------------------------------------------------------------------------*/
+
 app.get('/' , (request , response) => {
     additem.find((err, result)=>{
         if(err) throw err;
-        else    
-            response.render('index', {layout: 'CustomerNav.hbs',data : result,Customer:request.session.CustomerName});
+        else
+        {    
+            response.render('index', {data : result});
+        }
     });
 });
 
-app.get('/admin-login' , (request , response) => {
-    response.render('Admin_login', {layout: 'CustomerNav.hbs'}); //Here Two doubts - (1)Extension, (2)location
-});
 
 app.get('/Customer-login' , (request , response) => {
-    response.render('Customer_login', {layout: 'CustomerNav.hbs'}); //Here Two doubts - (1)Extension, (2)location
+    response.render('Customer_login');
 });
+
 
 app.get('/Customer-Register' , (request , response) => {
-    response.render('Customer_Registration', {layout: 'CustomerNav.hbs'}); //Here Two doubts - (1)Extension, (2)location
+    response.render('Customer_Registration'); //Here Two doubts - (1)Extension, (2)location
 });
+
 
 app.get('/Contact' , (request , response) => {
-    response.render('ContactUs', {layout: 'CustomerNav.hbs', Customer:request.session.CustomerName});
+    response.render('ContactUs', {Customer:request.session.CustomerName});
 });
+
 
 app.get('/About' , (request , response) => {
-    response.render('AboutUs', {layout: 'CustomerNav.hbs', Customer:request.session.CustomerName});
+    response.render('AboutUs', {Customer:request.session.CustomerName});
 });
 
-app.get('/AddProduct' ,(request, response) => {
-    response.render('addproduct',{user:request.session.user});
-});
-
-app.get('/adminHome',redirectLogin, (request, response) => {
-    response.render('AdminHome',{user:request.session.user});
-});
-
-app.get('/viewProduct',redirectLogin, (request, response) => {
-    additem.find((err, result)=>{
-        if(err) throw err;
-        else    
-            response.render('viewproduct',{data : result, user:request.session.user});
-    });
-});
 
 app.get('/detailInfo', (request, response) => {
     additem.findOne({_id:request.query.id}, (err, result) => {
         if(err) throw err;
         else
-            response.render('viewDetail',{data : result , layout: 'CustomerNav.hbs', Customer:request.session.CustomerName});
+            response.render('viewDetail',{data : result , Customer:request.session.CustomerName});
     });
 });
 
-app.get('/DeleteProduct', redirectLogin, (request,response) => {
-    //var id=request.query.id;
-    additem.deleteOne({_id:request.query.id}, (err) => {
-        if(err) throw err;
-        else{
-            additem.find((err, result)=>{
-                if(err) throw err;
-                else    
-                    response.render('viewproduct',{data : result , user:request.session.user});
-            })
-        }
-    });
-});
-
-app.get('/UpdateProduct',(request,response) => {
-    additem.findOne({_id:request.query.id}, (err, result) => {
-        if(err) throw err;
-        else
-            response.render('getUpdateInfo',{data : result , user:request.session.user});
-    });
-});
 
 app.get('/cartItems', (request, response) => {
     cart.aggregate(
@@ -198,12 +242,74 @@ app.get('/cartItems', (request, response) => {
             // console.log(result);
             // response.json(result);
             else{
-                response.render('cartItems',{data:result, Customer:request.session.CustomerName, layout: 'CustomerNav.hbs'})
+                response.render('cartItems',{data:result, Customer:request.session.CustomerName})
             }
         }
     )
-})
+});
 
+
+app.get('/cartAction', (request, response) => { 
+    if(request.session.CustomerName){
+        var newCart = new cart({
+            productId: request.query.id,
+            userEmail: request.session.CustomerName,
+            pQuantity: request.query.count
+        });
+        //save function return promises
+        newCart.save().then(data => {
+            additem.find((err, result)=>{
+                if(err) throw err;
+                else
+                    response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated' });
+            });
+        });
+    }
+    else{
+        response.render('Customer_login');
+    }
+});
+
+
+
+/*-------------------------------------------------------------------Customer or User POST Methods for Backend--------------------------------------------------------------------------------*/
+
+app.post('/RegisterUser' , (request,response) => {
+    var newUser = new User({
+            UserName: request.body.username,
+            Password: request.body.userpassword,
+            Email: request.body.useremail,
+            Contact: request.body.usercontact,
+            Address: request.body.userAddress
+        });
+
+        //save function return promises
+        newUser.save().then(data => {
+            response.render('Customer_Registration', {msg : 'Registered Successfuly Now Please Login!'});
+    });
+});
+
+
+app.post('/loginCheckUser',(request,response)=>{
+    var name = request.body.useremail;
+    User.findOne({Email:request.body.useremail , Password:request.body.userpassword},  (err,result)=>{
+      if(err) throw err;
+      else if(result!=null) 
+      {
+        additem.find((err, result)=>{
+            if(err) throw err;
+            else  
+            {
+                request.session.CustomerName = name;
+                response.render('index', {Customer:request.session.CustomerName ,data : result});
+            }
+        });
+      }
+     else{
+     	response.render('Customer_login',{msg:"Login Fail"});
+      }
+    });
+});
 
 
 app.post('/cartAction', (request, response) => { 
@@ -218,66 +324,37 @@ app.post('/cartAction', (request, response) => {
             additem.find((err, result)=>{
                 if(err) throw err;
                 else
-                    response.render('index', {layout: 'CustomerNav.hbs',data : result,Customer:request.session.CustomerName, msg: 'Cart Updated'});
+                    response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated'});
             });
         });
     }
     else{
-        response.render('Customer_login', {layout: 'CustomerNav.hbs'});
+        response.render('Customer_login');
     }
 });
 
 
 
-var fs = require('fs');
-var filePath = './public/upload/'; 
 
-app.post('/updateAction', (request,response) => {
-    //console.log(request.files);
-    if(request.files)
-    {
-        fs.unlinkSync(filePath + request.body.oldimage)
-        var random= Math.random().toString(36).slice(-8);
-        var alldata = request.files.pfile;
-        var filename = alldata.name;
-        var altfname = random + filename;
-        alldata.mv('./public/upload/'+altfname, (err) =>{
-            if(err) throw err;
-        });
-        
-        additem.findByIdAndUpdate(request.body.id, 
-            {Pname:request.body.pname, Pprice:request.body.pprice, Pdesc:request.body.pdesc, Pcategory:request.body.pselect, Pimage:altfname},
-            (err) => {
-                if(err) throw err;
-                else{
-                    additem.find((err, result)=>{
-                        if(err) throw err;
-                        else    
-                            response.render('getUpdateInfo',{data : result, user:request.session.user , msg:'Information Updated'});
-                    });
-                }
-            });
-    }
-    else
-    {
-        additem.findByIdAndUpdate(request.body.id, 
-            {Pname:request.body.pname, Pprice:request.body.pprice, Pdesc:request.body.pdesc, Pcategory:request.body.pselect},
-            (err) => {
-                if(err) throw err;
-                else{
-                    additem.find((err, result)=>{
-                        if(err) throw err;
-                        else    
-                            response.render('getUpdateInfo',{data : result, user:request.session.user , msg:'Information Updated'});
-                    });
-                }
-            });
-    }
+/*-------------------------------------------------------------------Admin POST Methods for Backend--------------------------------------------------------------------------------*/
+
+app.post('/loginCheck',(request,response)=>{
+    var name = request.body.uname;
+    Login.findOne({uname:request.body.uname , password:request.body.password},  (err,result)=>{
+      if(err) throw err;
+      else if(result!=null) 
+      {
+            request.session.user=name;
+            response.render('AdminHome', {user:request.session.user , layout: 'AdminNav.hbs'});
+      }
+     else{
+     	response.render('Admin_Login',{msg:"Login Fail"});
+      }
+    });
 });
 
 
-
-app.post('/insertProduct' , (request,response) => {
+app.post('/insertProduct' ,redirectAdminLogin, (request,response) => {
     if(request.files)
     {
         var random= Math.random().toString(36).slice(-8);
@@ -299,7 +376,7 @@ app.post('/insertProduct' , (request,response) => {
             {
                 //save function return promises
                 newProduct.save().then(data => {
-                    response.render('addproduct', {msg : 'Product Added Successfuly', user:request.session.user})
+                    response.render('addproduct', {msg : 'Product Added Successfuly', user:request.session.user, layout: 'AdminNav.hbs'})
                 });
             }
         });
@@ -308,61 +385,59 @@ app.post('/insertProduct' , (request,response) => {
 
 
 
-app.post('/RegisterUser' , (request,response) => {
-    var newUser = new User({
-            UserName: request.body.username,
-            Password: request.body.userpassword,
-            Email: request.body.useremail,
-            Contact: request.body.usercontact,
-            Address: request.body.userAddress
-        });
+var fs = require('fs');
+var filePath = './public/upload/'; 
 
-        //save function return promises
-        newUser.save().then(data => {
-            response.render('Customer_Registration', {msg : 'Registered Successfuly Now Please Login!', layout: 'CustomerNav.hbs'})
-    });
-});
-
-
-app.post('/loginCheck',(request,response)=>{
-    var name = request.body.uname;
-    Login.findOne({uname:request.body.uname , password:request.body.password},  (err,result)=>{
-      if(err) throw err;
-      else if(result!=null) 
-      {
-            request.session.user=name;
-            response.render('AdminHome', {user:request.session.user});
-      }
-     else{
-     	response.render('Admin_Login',{msg:"Login Fail", layout: 'CustomerNav.hbs'});
-      }
-    });
-});
-
-
-app.post('/loginCheckUser',(request,response)=>{
-    var name = request.body.useremail;
-    User.findOne({Email:request.body.useremail , Password:request.body.userpassword},  (err,result)=>{
-      if(err) throw err;
-      else if(result!=null) 
-      {
-        additem.find((err, result)=>{
+app.post('/updateAction',redirectAdminLogin, (request,response) => {
+    //console.log(request.files);
+    if(request.files)
+    {
+        fs.unlinkSync(filePath + request.body.oldimage)
+        var random= Math.random().toString(36).slice(-8);
+        var alldata = request.files.pfile;
+        var filename = alldata.name;
+        var altfname = random + filename;
+        alldata.mv('./public/upload/'+altfname, (err) =>{
             if(err) throw err;
-            else  
-            {
-                request.session.CustomerName = name;
-                response.render('index', {Customer:request.session.CustomerName, layout: 'CustomerNav.hbs',data : result});
-            }
         });
-      }
-     else{
-     	response.render('Customer_login',{msg:"Login Fail", layout: 'CustomerNav.hbs'});
-      }
-    });
+        
+        additem.findByIdAndUpdate(request.body.id, 
+            {Pname:request.body.pname, Pprice:request.body.pprice, Pdesc:request.body.pdesc, Pcategory:request.body.pselect, Pimage:altfname},
+            (err) => {
+                if(err) throw err;
+                else{
+                    additem.find((err, result)=>{
+                        if(err) throw err;
+                        else    
+                            response.render('getUpdateInfo',{data : result, user:request.session.user , msg:'Information Updated', layout: 'AdminNav.hbs'});
+                    });
+                }
+            });
+    }
+    else
+    {
+        additem.findByIdAndUpdate(request.body.id, 
+            {Pname:request.body.pname, Pprice:request.body.pprice, Pdesc:request.body.pdesc, Pcategory:request.body.pselect},
+            (err) => {
+                if(err) throw err;
+                else{
+                    additem.find((err, result)=>{
+                        if(err) throw err;
+                        else    
+                            response.render('getUpdateInfo',{data : result, user:request.session.user , msg:'Information Updated', layout: 'AdminNav.hbs'});
+                    });
+                }
+            });
+    }
 });
+
+
+
+
+
+/*-------------------------------------------------------------------code to create database and collections mannually--------------------------------------------------------------------------------*/
 
 /*
-
 // code to create database and collections mannually
 app.get('/test',(request,response)=>{
     var emp = new Login({
@@ -375,12 +450,18 @@ app.get('/test',(request,response)=>{
 });
 */
 
+
+/*-------------------------------------------------------------------Logout Method and 404 Method--------------------------------------------------------------------------------*/
+
 app.get('/logout',(request,response)=>{
     request.session.destroy();
     additem.find((err, result)=>{
         if(err) throw err;
-        else    
-            response.render('index', {layout: 'CustomerNav.hbs',data : result}); //Here Two doubts - (1)Extension, (2)location
+        else
+        {
+            count = 0;    
+            response.render('index', {data : result}); //Here Two doubts - (1)Extension, (2)location
+        }    
     });
 });
 

@@ -38,10 +38,28 @@
 	</a>
 </div>
 
+
 <!--Content Main Body--><br>
 <h1 style="text-align: center">Our Dishes</h1><br>
 
 <div class="container-fluid">
+
+	<div class="modal hide fade" id="myModal">
+		<div class="modal-header">
+			<a class="close" data-dismiss="modal">×</a>
+			<h3>Modal header</h3>
+		</div>
+		<div class="modal-body">
+			{{#if msg}}
+			<p>{{msg}}</p>
+			{{/if}}
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="btn">Close</a>
+			<a href="#" class="btn btn-primary">Save changes</a>
+		</div>
+	</div>
+
 
 	<div class="row cardmargin">
 		{{#each data}}
@@ -54,7 +72,7 @@
 				<div class="card-body text-center">
 					<h5 class="card-title">{{this.Pname}}</h5>
 					<p class="card-text">{{this.Pdesc}}</p>
-					<a href="detailInfo?id={{this._id}}" class="btn btn-success">Add-To-Cart</a><br><br>
+					<a href="cartAction?id={{this.Pid}}&count=1" class="btn btn-success">Add-To-Cart</a><br><br>
 					<a href="detailInfo?id={{this._id}}" class="btn btn-primary">Detail Info...</a>
 				</div>
 			</div>
@@ -97,3 +115,30 @@
 	<p class="text-muted" style="padding-left:200px;">Copyright &copy; <a href="http://shubhamgupta98.me"
 			target="_blank">Shubham Gupta</a></p>
 </footer>
+
+
+
+<!-- Modal -->
+{{#if msg}}
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+	aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				{{msg}}
+			</div>
+		</div>
+	</div>
+	{{/if}}
+
+	<script type="text/javascript">
+		$(window).on('load', function () {
+			$('#exampleModal').modal('show');
+		});
+	</script>
