@@ -6,6 +6,7 @@
             <th>Unit-Price</th>
             <th>Quantity</th>
             <th>Total Price (in &#8377;)</th>
+            <th>Remove Item</th>
         </tr>
         {{#each data}}
         {{#each items}}
@@ -16,18 +17,22 @@
             {{/each}}
             <td>{{this.pQuantity}}</td>
             <td></td>
+            <td><a href="DeleteCartItem?id={{this._id}}" onClick="return confirm('Deleted????')"
+                    class="fa fa-trash deleteicon"></a></td>
         </tr>
         {{/each}}
     </table>
     <hr>
-    <div class="row">
-        <div class="col-lg-8">
-            <h6 class="text-grand">Grand-Total</h6>
-        </div>
-        <div class="col-lg-4">
-            <span id="Gtotal" class="grand-total"></span>&#8377;
-        </div>
-    </div>
+    <table class="table">
+        <tr class="bg">
+            <td class="tdwidth">
+                <h6 class="text-grand">Grand-Total</h6>
+            </td>
+            <td>
+                <span id="Gtotal" class="grand-total"></span>&#8377;
+            </td>
+        </tr>
+    </table>
 </div>
 <script>
     var table = document.getElementById("tbl");

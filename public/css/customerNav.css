@@ -104,11 +104,26 @@ ul li{
 }
 
 .grand-total{
-	padding-left: 58%;
 	font-weight: bold;
 }
 
 .text-grand{
-	padding-left:80%;
+	padding-left:70%;
 	font-weight: bold; 
+}
+
+.deleteicon{
+	color: black;
+}
+
+.deleteicon:hover{
+	color: red;
+}
+
+.bg{
+	background-color: lightgreen;
+}
+
+.tdwidth{
+	width: 69%;
 }

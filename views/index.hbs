@@ -43,27 +43,9 @@
 <h1 style="text-align: center">Our Dishes</h1><br>
 
 <div class="container-fluid">
-
-	<div class="modal hide fade" id="myModal">
-		<div class="modal-header">
-			<a class="close" data-dismiss="modal">×</a>
-			<h3>Modal header</h3>
-		</div>
-		<div class="modal-body">
-			{{#if msg}}
-			<p>{{msg}}</p>
-			{{/if}}
-		</div>
-		<div class="modal-footer">
-			<a href="#" class="btn">Close</a>
-			<a href="#" class="btn btn-primary">Save changes</a>
-		</div>
-	</div>
-
-
 	<div class="row cardmargin">
 		{{#each data}}
-		<div class="col-lg-3" style="margin-top: 20px;">
+		<div class="col-lg-3 col-sm-6 col-md-6" style="margin-top: 20px;">
 			<div class="card shadow">
 				<div class="inner">
 					<img class="card-img-top" src="/upload/{{this.Pimage}}" alt="Card image cap" height="210px"
@@ -86,7 +68,7 @@
 <footer id="footer">
 	<div class="container">
 		<div class="row">
-			<div class="col-lg-4">
+			<div class="col-lg-4 col-sm-12 col-md-12">
 				<h3 style="color: yellow; letter-spacing:2px;" id="h3">Food-Ordering-App</h3><br>
 				<p>
 					Online Food Oredering Service<br>
@@ -94,7 +76,7 @@
 					Eat Healthy Live Healthy<br>
 				</p>
 			</div>
-			<div class="col-lg-4 text-center">
+			<div class="col-lg-4 col-sm-6 col-md-6 text-center">
 				<h4 style="color: lightgreen" class="h4">Visit Us</h4><br>
 				<ul>
 					<li><a href="/">Home</a></li>
@@ -103,7 +85,7 @@
 					<li><a href="http://shubhamgupta98.me">Portfolio</a></li>
 				</ul>
 			</div>
-			<div class="col-lg-4 text-center">
+			<div class="col-lg-4 col-sm-6 col-md-6 text-center">
 				<h4 class="h4" style="color:lightblue">Follow Us</h4><br>
 				<a href="#" class="twitter"><i class="fa fa-twitter-square fa-2x footer-icon"></i></a>
 				<a href="#" class="facebook"><i class="fa fa-facebook-square fa-2x footer-icon"></i></a>
@@ -125,7 +107,7 @@
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+				<h5 class="modal-title" id="exampleModalLabel" style="color: red;">Food-Ordering-App</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>

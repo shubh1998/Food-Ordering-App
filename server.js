@@ -17,6 +17,10 @@ const URL = "mongodb://localhost:27017/FoodOrder";    //For LocalHost
 const mongoose = require('mongoose');
 mongoose.connect(URL);
 
+//Global Variable
+count = 0;
+
+
 /*----------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
@@ -74,9 +78,6 @@ app.engine('hbs' , hbs({
 }));
 app.set('view engine' , 'hbs');
 
-//globle variable
-var count = 0;
-
 
 //Configure body-parser
 const bodyparser = require('body-parser');
@@ -86,7 +87,17 @@ app.use(bodyparser.urlencoded({
 }));
 
 
+/*----------------------------------------------------Add Cart Item Count Function-----------------------------------------------------------------*/
 
+function cartProductCount(request, response, callback) {
+    cart.count({ userEmail: request.session.CustomerName }, (err, count1) => {
+        //console.log(count1);
+        if (err) throw err;
+        else {
+            callback(count1);
+        }
+    });
+};
 
 /*-------------------------------------------------------------------Admin GET Methods for Backend--------------------------------------------------------------------------------*/
 
@@ -180,13 +191,27 @@ app.get('/searchRecord', (request,response) =>{
 /*-------------------------------------------------------------------Customer or User GET Methods for Backend--------------------------------------------------------------------------------*/
 
 app.get('/' , (request , response) => {
-    additem.find((err, result)=>{
-        if(err) throw err;
-        else
-        {    
-            response.render('index', {data : result});
-        }
-    });
+    if(request.session.CustomerName)
+    {
+        additem.find((err, result)=>{
+            if(err) throw err;
+            else
+            {
+                cartProductCount(request, response, (cartdata) => { 
+                    response.render('index', {data : result, Customer:request.session.CustomerName, cartcount:cartdata});
+                });
+            }
+        });
+    }
+    else{
+        additem.find((err, result)=>{
+            if(err) throw err;
+            else
+            {
+                response.render('index', {data : result, cartcount:count});
+            }
+        });
+    }
 });
 
 
@@ -201,20 +226,27 @@ app.get('/Customer-Register' , (request , response) => {
 
 
 app.get('/Contact' , (request , response) => {
-    response.render('ContactUs', {Customer:request.session.CustomerName});
+    cartProductCount(request, response, (cartdata) => {
+        response.render('ContactUs', {Customer:request.session.CustomerName, cartcount:cartdata});
+    });
 });
 
 
 app.get('/About' , (request , response) => {
-    response.render('AboutUs', {Customer:request.session.CustomerName});
+    cartProductCount(request, response, (cartdata) => {
+        response.render('AboutUs', {Customer:request.session.CustomerName, cartcount:cartdata});    
+    });
 });
-
 
 app.get('/detailInfo', (request, response) => {
     additem.findOne({_id:request.query.id}, (err, result) => {
         if(err) throw err;
         else
-            response.render('viewDetail',{data : result , Customer:request.session.CustomerName});
+        {
+            cartProductCount(request, response, (cartdata) => {
+                response.render('viewDetail',{data : result , Customer:request.session.CustomerName, cartcount:cartdata});
+            });
+        }
     });
 });
 
@@ -242,7 +274,9 @@ app.get('/cartItems', (request, response) => {
             // console.log(result);
             // response.json(result);
             else{
-                response.render('cartItems',{data:result, Customer:request.session.CustomerName})
+                cartProductCount(request, response, (cartdata) => {
+                    response.render('cartItems',{data:result, Customer:request.session.CustomerName, cartcount:cartdata});
+                });
             }
         }
     )
@@ -260,14 +294,76 @@ app.get('/cartAction', (request, response) => {
         newCart.save().then(data => {
             additem.find((err, result)=>{
                 if(err) throw err;
-                else
-                    response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated' });
+                else{
+                    cartProductCount(request, response, (cartdata) => {
+                        response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated', cartcount:cartdata});
+                    });
+                }
             });
         });
     }
     else{
-        response.render('Customer_login');
+        cartProductCount(request, response, (cartdata) => {
+            response.render('Customer_login',{cartcount: cartdata});
+        });
     }
+});
+
+
+app.get('/ViewProfile', (request, response) => {
+    User.findOne({Email: request.session.CustomerName},(err,result)=>{
+        if(err) throw err;
+        else  
+        {
+            cartProductCount(request, response, (cartdata) => {
+                response.render('viewprofile',{data : result, Customer:request.session.CustomerName, cartcount:cartdata});
+            });     
+        }  
+    });
+});
+
+
+app.get('/DeleteCartItem', (request,response) => {
+    //var id=request.query.id;
+    cart.deleteOne({_id:request.query.id}, (err) => {
+        if(err) throw err;
+        else{
+            cart.find((err, result)=>{
+                if(err) throw err;
+                else
+                {
+                    cart.aggregate(
+                        [
+                            {
+                                $match:{
+                                    userEmail:request.session.CustomerName
+                                }
+                            },
+                            {
+                                $lookup:
+                                {
+                                    from:'additems',
+                                    localField: 'productId',
+                                    foreignField: 'Pid',
+                                    as : "items"
+                                }
+                            }
+                        ],(err, result) => {
+                            if(err) throw err;
+                            // console.log(result[0].items);
+                            // console.log(result);
+                            // response.json(result);
+                            else{
+                                cartProductCount(request, response, (cartdata) => {
+                                    response.render('cartItems',{data : result, Customer:request.session.CustomerName, cartcount:cartdata});
+                                });
+                            }
+                        }
+                    ) 
+                }
+            })
+        }
+    });
 });
 
 
@@ -301,7 +397,9 @@ app.post('/loginCheckUser',(request,response)=>{
             else  
             {
                 request.session.CustomerName = name;
-                response.render('index', {Customer:request.session.CustomerName ,data : result});
+                cartProductCount(request, response, (cartdata) => {
+                    response.render('index', {Customer:request.session.CustomerName ,data : result, cartcount:cartdata});
+                });
             }
         });
       }
@@ -323,8 +421,11 @@ app.post('/cartAction', (request, response) => {
         newCart.save().then(data => {
             additem.find((err, result)=>{
                 if(err) throw err;
-                else
-                    response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated'});
+                else{
+                    cartProductCount(request, response, (cartdata) => {
+                        response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated Successfully', cartcount:cartdata});
+                    });
+                }
             });
         });
     }
@@ -459,7 +560,6 @@ app.get('/logout',(request,response)=>{
         if(err) throw err;
         else
         {
-            count = 0;    
             response.render('index', {data : result}); //Here Two doubts - (1)Extension, (2)location
         }    
     });

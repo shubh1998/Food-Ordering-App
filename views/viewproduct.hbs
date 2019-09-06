@@ -19,7 +19,8 @@
             font-weight: bold;
         }
 
-        #search #search-input, #search .hint {
+        #search #search-input,
+        #search .hint {
             padding-left: 43px;
             padding-right: 43px;
             border-radius: 23px;
@@ -32,9 +33,10 @@
             padding: 0;
             margin: -1px;
             overflow: hidden;
-            clip: rect(0,0,0,0);
+            clip: rect(0, 0, 0, 0);
             border: 0;
         }
+
         .input-lg {
             height: 46px;
             padding: 10px 16px;
@@ -55,23 +57,22 @@
     <!--AJAX JQuery Live Search-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script>
-        $(document).ready(function(){
+        $(document).ready(function () {
             $('#searchedDishes').hide();
-            $("#search-input").on("input" , function(){
-                var searchDish=$("#search-input").val();
-                var data1="name="+searchDish;
+            $("#search-input").on("input", function () {
+                var searchDish = $("#search-input").val();
+                var data1 = "name=" + searchDish;
                 //AJAX Code
                 $.ajax({
-                    url:'searchRecord',
-                    data:data1,
-                    type:'get',
-                    success:function(response)
-                    {
+                    url: 'searchRecord',
+                    data: data1,
+                    type: 'get',
+                    success: function (response) {
                         $('#allDishes').hide();
                         $('#searchedDishes').show();
                         $('#searchedDishes').empty();
 
-                        for(data of response.searchedData){
+                        for (data of response.searchedData) {
                             $('#searchedDishes').append(
                                 `<tr class="text-center" id="myTable">
                                     <td>${data.Pname}</td>
@@ -87,21 +88,23 @@
                     }
                 }); //AJAX end
             })
-		});//ready function end
+        });//ready function end
     </script>
 </head>
 
 <div class="container block">
     <div class="row">
         <div class="col-sm-5" style="padding-top: 20px;">
-                    <h1 style="color: #1c009e; display:inline;"><b><i>Products Available</i></b></h1>
+            <h1 style="color: #1c009e; display:inline;"><b><i>Products Available</i></b></h1>
         </div>
         <div class="col-sm-7">
             <section id="search">
-                <label for="search-input"><i class="fa fa-search" aria-hidden="true"></i><span class="sr-only">Search icons</span></label>
-                <input id="search-input" name="search" class="form-control input-lg" placeholder="Search icons" autocomplete="off" spellcheck="false" autocorrect="off" tabindex="1">
+                <label for="search-input"><i class="fa fa-search" aria-hidden="true"></i><span class="sr-only">Search
+                        icons</span></label>
+                <input id="search-input" name="search" class="form-control input-lg" placeholder="Search icons"
+                    autocomplete="off" spellcheck="false" autocorrect="off" tabindex="1">
             </section>
-        </div>    
+        </div>
     </div>
     <br>
     <hr>
@@ -118,7 +121,7 @@
                 <th>Update Product</th>
             </tr>
         </thead>
-        
+
         <tbody id="allDishes">
             {{#each data}}
             <tr class="text-center" id="myTable">
@@ -127,11 +130,12 @@
                 <td>{{this.Pdesc}}</td>
                 <td>{{this.Pcategory}}</td>
                 <td><img src="/upload/{{this.Pimage}}" height="50px" width="50px"></td>
-                <td><a href="/DeleteProduct?id={{this._id}}"  onClick="return confirm('Deleted????')" class="glyphicon glyphicon-trash"></a></td>
-                <td><a href="/UpdateProduct?id={{this._id}}"  class="glyphicon glyphicon-edit"></a></td>
+                <td><a href="/DeleteProduct?id={{this._id}}" onClick="return confirm('Deleted????')"
+                        class="glyphicon glyphicon-trash"></a></td>
+                <td><a href="/UpdateProduct?id={{this._id}}" class="glyphicon glyphicon-edit"></a></td>
             </tr>
             {{/each}}
-        </tbody>    
+        </tbody>
 
         <tbody id="searchedDishes">
 

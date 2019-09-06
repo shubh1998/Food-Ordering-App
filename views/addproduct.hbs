@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<title>Admin-Dashboard</title>
 	<meta charset="UTF-8">
@@ -8,52 +9,52 @@
 
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-<!--===============================================================================================-->	
-	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico" />
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="fonts/iconic/css/material-design-iconic-font.min.css">
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
-<!--===============================================================================================-->	
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="vendor/animsition/css/animsition.min.css">
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
-<!--===============================================================================================-->	
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="vendor/daterangepicker/daterangepicker.css">
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<link rel="stylesheet" type="text/css" href="css/util.css">
 	<link rel="stylesheet" type="text/css" href="css/main.css">
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 	<script>
-		$(document).ready(function(){
-		$("#productName").blur(function(){
-			var pid=$("#productName").val();
-			var data1="productName="+pid;
+		$(document).ready(function () {
+			$("#productName").blur(function () {
+				var pid = $("#productName").val();
+				var data1 = "productName=" + pid;
 				//alert(data1);
-			//AJAX Code
-			$.ajax({
-				url:'checkExistance',
-				data:data1,
-				type:'get',
-				success:function(response)
-				{
-				if(response.msg=="<h3><b>Warning : Already Exist</b></h3>")
-				$("#productName").val("");
-				$("#msg").html(response.msg);
-				}
-			}); //AJAX end
-		});//blur function end
+				//AJAX Code
+				$.ajax({
+					url: 'checkExistance',
+					data: data1,
+					type: 'get',
+					success: function (response) {
+						if (response.msg == "<h3><b>Warning : Already Exist</b></h3>")
+							$("#productName").val("");
+						$("#msg").html(response.msg);
+					}
+				}); //AJAX end
+			});//blur function end
 		});//ready function end
 	</script>
 </head>
+
 <body>
 	<div class="block-add limiter">
 		<div class="container-login100">
@@ -64,7 +65,8 @@
 					<strong>{{msg}}</strong>
 				</div>
 				{{/if}}
-				<form class="login100-form validate-form" action="insertProduct" enctype="multipart/form-data" method="POST">
+				<form class="login100-form validate-form" action="insertProduct" enctype="multipart/form-data"
+					method="POST">
 					<span class="login100-form-title p-b-40" style="padding-bottom: 20px;">
 						Add-Product-Form
 					</span>
@@ -72,32 +74,32 @@
 						<img src="images/food2.jpg" alt="AVATAR">
 					</span>
 
-					<div class="wrap-input100 validate-input" data-validate = "Enter pname">
+					<div class="wrap-input100 validate-input" data-validate="Enter pname">
 						<input class="input100" type="text" name="pname" id="productName">
 						<span class="focus-input100" data-placeholder="Enter Product Name"></span>
 						<div id="msg" style="color: red;"></div>
 					</div>
 
-					<div class="wrap-input100 validate-input m-t-30" data-validate = "Enter Price">
+					<div class="wrap-input100 validate-input m-t-30" data-validate="Enter Price">
 						<input class="input100" type="number" name="pprice">
 						<span class="focus-input100" data-placeholder="Enter Product Price"></span>
 					</div>
 
-					<div class="wrap-input100 validate-input m-t-30" data-validate = "Enter Description">
-						<input class="input100" type="text" name="pdesc"/>
+					<div class="wrap-input100 validate-input m-t-30" data-validate="Enter Description">
+						<input class="input100" type="text" name="pdesc" />
 						<span class="focus-input100" data-placeholder="Enter Product Description"></span>
 					</div>
 
 					<div class="m-t-30 option">
-						<select style="border-radius: 5px; width:100%; height:5vh;" name="pselect"> 
+						<select style="border-radius: 5px; width:100%; height:5vh;" name="pselect">
 							<option>Ready To Eat</option>
 							<option>Ready To Cook</option>
-						</select>	
+						</select>
 						<span class="focus-input100"></span>
 					</div>
 
-					<div class="wrap-input100 validate-input m-t-30" data-validate = "">
-						<input class="input100" type="file" name="pfile"/>
+					<div class="wrap-input100 validate-input m-t-30" data-validate="">
+						<input class="input100" type="file" name="pfile" />
 						<span class="focus-input100" data-placeholder=""></span>
 					</div>
 
@@ -110,26 +112,27 @@
 			</div>
 		</div>
 	</div>
-	
+
 
 	<div id="dropDownSelect1"></div>
-	
-<!--===============================================================================================-->
+
+	<!--===============================================================================================-->
 	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<script src="vendor/animsition/js/animsition.min.js"></script>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<script src="vendor/bootstrap/js/popper.js"></script>
 	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<script src="vendor/select2/select2.min.js"></script>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<script src="vendor/daterangepicker/moment.min.js"></script>
 	<script src="vendor/daterangepicker/daterangepicker.js"></script>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<script src="vendor/countdowntime/countdowntime.js"></script>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<script src="js/main.js"></script>
 
 </body>
+
 </html>
