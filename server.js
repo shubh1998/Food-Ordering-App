@@ -11,6 +11,8 @@ const User = require('./model/User');
 
 const cart = require('./model/cart');
 
+const order = require('./model/order');
+
 const Login = require('./model/Admin_Login');
 const URL = "mongodb://localhost:27017/FoodOrder";    //For LocalHost
 //const URL = "mongodb+srv://shubham:12345@cluster0-hsysq.mongodb.net/test?retryWrites=true&w=majority";
@@ -20,6 +22,8 @@ mongoose.connect(URL);
 //Global Variable
 count = 0;
 
+//To remove deprecated warning
+mongoose.set('useFindAndModify', false);
 
 /*----------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -285,22 +289,38 @@ app.get('/cartItems', (request, response) => {
 
 app.get('/cartAction', (request, response) => { 
     if(request.session.CustomerName){
-        var newCart = new cart({
-            productId: request.query.id,
-            userEmail: request.session.CustomerName,
-            pQuantity: request.query.count
-        });
-        //save function return promises
-        newCart.save().then(data => {
-            additem.find((err, result)=>{
-                if(err) throw err;
-                else{
-                    cartProductCount(request, response, (cartdata) => {
-                        response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated', cartcount:cartdata});
+        cart.findOne({productId: request.query.id}, (err, result)=>{
+            if(result != null)
+            {
+                cart.findOneAndUpdate({productId: request.query.id}, {$inc: {pQuantity: request.query.count}}, {upsert:true}, (err,result) => {
+                    if(err) throw err;
+                    else{
+                        cartProductCount(request, response, (cartdata) => {
+                            response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated Successfully', cartcount:cartdata});
+                        });
+                    }
+                })
+            }
+
+            else{
+                var newCart = new cart({
+                    productId: request.query.id,
+                    userEmail: request.session.CustomerName,
+                    pQuantity: request.query.count
+                });
+                //save function return promises
+                newCart.save().then(data => {
+                    additem.find((err, result)=>{
+                        if(err) throw err;
+                        else{
+                            cartProductCount(request, response, (cartdata) => {
+                                response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated Successfully', cartcount:cartdata});
+                            });
+                        }
                     });
-                }
-            });
-        });
+                });
+            }
+        })
     }
     else{
         cartProductCount(request, response, (cartdata) => {
@@ -367,6 +387,41 @@ app.get('/DeleteCartItem', (request,response) => {
 });
 
 
+app.get('/checkout', (request, response) => {
+    cart.aggregate(
+        [
+            {
+                $match:{
+                    userEmail:request.session.CustomerName
+                }
+            },
+            {
+                $lookup:
+                {
+                    from:'additems',
+                    localField: 'productId',
+                    foreignField: 'Pid',
+                    as : "items"
+                }
+            }
+        ],(err, result) => {
+            if(err) throw err;
+            // console.log(result[0].items);
+            // console.log(result);
+            // response.json(result);
+            else{
+                User.findOne({Email: request.session.CustomerName}, (err, result1) => {
+                    if(result1!=null){
+                        cartProductCount(request, response, (cartdata) => {
+                            response.render('CheckOut',{data:result, UserInfo:result1, Customer:request.session.CustomerName, cartcount:cartdata});
+                        });
+                    }
+                })
+            }
+        }
+    )
+})
+
 
 /*-------------------------------------------------------------------Customer or User POST Methods for Backend--------------------------------------------------------------------------------*/
 
@@ -412,30 +467,118 @@ app.post('/loginCheckUser',(request,response)=>{
 
 app.post('/cartAction', (request, response) => { 
     if(request.session.CustomerName){
-        var newCart = new cart({
-            productId: request.query.id,
-            userEmail: request.session.CustomerName,
-            pQuantity: request.body.count
-        });
-        //save function return promises
-        newCart.save().then(data => {
-            additem.find((err, result)=>{
-                if(err) throw err;
-                else{
-                    cartProductCount(request, response, (cartdata) => {
-                        response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated Successfully', cartcount:cartdata});
+        cart.findOne({productId: request.query.id}, (err, result)=>{
+            if(result != null)
+            {
+                cart.findOneAndUpdate({productId: request.query.id}, {$inc: {pQuantity: request.body.count}}, {upsert:true}, (err,result) => {
+                    if(err) throw err;
+                    else{
+                        cartProductCount(request, response, (cartdata) => {
+                            response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated Successfully', cartcount:cartdata});
+                        });
+                    }
+                })
+            }
+
+            else{
+                var newCart = new cart({
+                    productId: request.query.id,
+                    userEmail: request.session.CustomerName,
+                    pQuantity: request.body.count
+                });
+                //save function return promises
+                newCart.save().then(data => {
+                    additem.find((err, result)=>{
+                        if(err) throw err;
+                        else{
+                            cartProductCount(request, response, (cartdata) => {
+                                response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Cart Updated Successfully', cartcount:cartdata});
+                            });
+                        }
                     });
-                }
-            });
-        });
+                });
+            }
+        })
     }
     else{
-        response.render('Customer_login');
+        cartProductCount(request, response, (cartdata) => {
+            response.render('Customer_login',{cartcount: cartdata});
+        });
     }
 });
 
 
+app.post('/CustomerOrder' , (request, response) =>{
+    cart.aggregate(
+        [
+            {
+                $match:{
+                    userEmail:request.session.CustomerName
+                }
+            },
+            {
+                $lookup:
+                {
+                    from:'additems',
+                    localField: 'productId',
+                    foreignField: 'Pid',
+                    as : "items"
+                }
+            }
+        ],(err, result) => {
+            if(err) throw err;
+           
+            // console.log(result[0].items);
+            // console.log(result);
+            // response.json(result);
+            else{
+                var total =0;
+                result.map((data)=>{
+                    total += data.items[0].Pprice*data.pQuantity;
+                })
 
+                //To find Cart Details
+                var productDataset = [];
+                result.map((data)=>{
+                    productDataset.push(
+                        {
+                            ProductName:data.items[0].Pname,
+                            ProductQuantity: data.pQuantity,
+                            ProductPrice: data.items[0].Pprice
+                        }
+                    );
+                })
+
+                // console.log(dataset);
+                var random =Math.random().toString(32).slice(-8)
+                var newData =new order({
+                    orderId:random,
+                    CustomerEmail: request.body.email,
+                    CustomerContact: request.body.contact,
+                    CustomerAddress: request.body.Address,
+                    Products:productDataset,
+                    Total: total,
+                    Status: "pending",
+                })
+
+                newData.save().then(data => {
+                    cart.deleteMany({userEmail: request.session.CustomerName}, (err)=>{
+                        if(err) throw err;
+                        else{
+                            cartProductCount(request, response, (cartdata) => {
+                                    additem.find((err, result)=>{
+                                    if(err) throw err;
+                                    response.render('index', {data : result,Customer:request.session.CustomerName, msg: 'Order Place Successfully', cartcount:cartdata});
+                                })
+                            });
+                        }
+                    });
+                });
+                // console.log(newdata)
+            }
+        }
+    )
+});
 
 /*-------------------------------------------------------------------Admin POST Methods for Backend--------------------------------------------------------------------------------*/
 
@@ -469,7 +612,7 @@ app.post('/insertProduct' ,redirectAdminLogin, (request,response) => {
             Pdesc:request.body.pdesc,
             Pcategory:request.body.pselect,
             Pimage: altfname
-        });
+        });  
 
         alldata.mv('./public/upload/'+altfname, (err) =>{
             if(err) throw err;
